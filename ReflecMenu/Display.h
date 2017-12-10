@@ -7,8 +7,9 @@
 
 #define CLASS_NAME L"Reflec Beat Touch Launcher"
 
-#define ITEM_HEIGHT 75
-#define ITEM_PADDING 25
+#define ITEM_HEIGHT 40
+#define ITEM_PADDING 20
+#define FONT_SIZE 20
 
 class Display
 {
@@ -18,6 +19,7 @@ class Display
 
 		void Tick();
 		int GetSelectedItem(double x, double y);
+		bool WasClosed();
 
 	private:
 		HINSTANCE inst;

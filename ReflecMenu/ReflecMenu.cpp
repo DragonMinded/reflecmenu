@@ -61,24 +61,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	
 	/* Actual game to load */
 	char *path = NULL;
-	bool selected = false;
 		
 	/* It may have taken a long time to init */
 	menu->ResetTimeout();
 
 	/* Loop until time's up, then boot */
-    while( !selected )
+    while( true )
     {
 		/* Tick all of the pieces, because nobody wants threads */
 		display->Tick();
 		menu->Tick();
 		touch->Tick();
 
+		/* See if somebody killed the display window */
+		if (display->WasClosed())
+		{
+			break;
+		}
+
 		/* Check to see if we ran out of time waiting for input */
 		if (menu->ShouldBootDefault())
 		{
 			path = menu->GetEntryPath(0);
-			selected = true;
 			break;
 		}
 
@@ -90,7 +94,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			int entry = display->GetSelectedItem(x, y);
 			if (entry >= 0) {
 				path = menu->GetEntryPath(entry);
-				selected = true;
+				break;
 			}
 		}
 	}

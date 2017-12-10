@@ -5,12 +5,24 @@
 #include "Menu.h"
 
 Menu *globalMenu;
-int resX, resY;
+int globalResX, globalResY;
+bool globalQuit;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+		case WM_CLOSE:
+            DestroyWindow(hwnd);
+			globalQuit = true;
+			return 0;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+			globalQuit = true;
+			return 0;
+		case WM_QUIT:
+			globalQuit = true;
+			return 0;
 		case WM_PAINT:
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hwnd, &ps);
@@ -24,7 +36,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			SetTextColor(hdc, RGB(240, 240, 240));
 			SetBkMode(hdc, TRANSPARENT);
 			SetBkColor(hdc, RGB(24, 24, 24));
-			HFONT hFont = CreateFont(40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, L"Verdana");
+			HFONT hFont = CreateFont(FONT_SIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, L"Verdana");
 			SelectObject(hdc, hFont);
 
 			/* Set up brush colors */
@@ -38,7 +50,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				unsigned int top = ((ITEM_HEIGHT + ITEM_PADDING) * i) + ITEM_PADDING;
 				unsigned int bottom = top + ITEM_HEIGHT;
 				unsigned int left = ITEM_PADDING;
-				unsigned int right = resX - ITEM_PADDING;
+				unsigned int right = globalResX - ITEM_PADDING;
 				
 				/* Draw bounding rectangle */
 				Rectangle(hdc, left, top, right, bottom);
@@ -59,7 +71,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			DeleteObject(hFont);
 			
             EndPaint(hwnd, &ps);
-			break;
+			return 0;
 	}
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -87,11 +99,20 @@ Display::Display(HINSTANCE hInstance, Menu *mInst)
     RegisterClass(&wc);
 
 	// Get window sizes
-	GetDesktopResolution(resX, resY);
+	GetDesktopResolution(globalResX, globalResY);
+	globalQuit = false;
 
 	// Create an empty window
-	hwnd = CreateWindow(CLASS_NAME, 0, WS_BORDER, 0, 0, resX, resY, NULL, NULL, inst, NULL);
-	SetWindowLong(hwnd, GWL_STYLE, 0);
+	hwnd = CreateWindow(CLASS_NAME, 0, WS_BORDER, 0, 0, globalResX, globalResY, NULL, NULL, inst, NULL);
+	LONG lStyle = GetWindowLong(hwnd, GWL_STYLE);
+	lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+	SetWindowLong(hwnd, GWL_STYLE, lStyle);
+	LONG lExStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+	lExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+	SetWindowLong(hwnd, GWL_EXSTYLE, lExStyle);
+
+	/* Display it */
+	SetWindowPos(hwnd, NULL, 0,0,0,0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 	ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 	ShowCursor(false);
@@ -114,16 +135,21 @@ void Display::Tick(void)
 	}
 }
 
+bool Display::WasClosed()
+{
+	return globalQuit;
+}
+
 int Display::GetSelectedItem(double x, double y)
 {
-	int realX = (int)(x * (double)resX);
-	int realY = (int)(y * (double)resY);
+	int realX = (int)(x * (double)globalResX);
+	int realY = (int)(y * (double)globalResY);
 
 	for( unsigned int i = 0; i < globalMenu->NumberOfEntries(); i++ ) {
 		int top = ((ITEM_HEIGHT + ITEM_PADDING) * i) + ITEM_PADDING;
 		int bottom = top + ITEM_HEIGHT;
 		int left = ITEM_PADDING;
-		int right = resX - ITEM_PADDING;
+		int right = globalResX - ITEM_PADDING;
 
 		if (realX >= left && realX <= right && realY >= top && realY <= bottom) {
 			return i;
