@@ -20,8 +20,8 @@ class Touch
 
 	private:
 		HANDLE OpenSerial( const _TCHAR *arg, int baud );
-		bool ValidatePacket(unsigned char * packet);
-		void SeparateAxis(unsigned char * packet, bool *horizontal, bool *vertical);
+		bool ValidatePacket();
+		void SeparateAxis(bool *horizontal, bool *vertical);
 		void GetLikelyClickPosition(bool *horizontal, bool *vertical, double *x, double *y, bool *click);
 
 		HANDLE serial;

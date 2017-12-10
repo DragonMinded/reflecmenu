@@ -4,7 +4,7 @@
 Touch::Touch()
 {
 	/* Open the serial, wipe it clean and wipe the packet buffer clean */
-	HANDLE serial = OpenSerial(L"COM1", 38400);
+	serial = OpenSerial(L"COM1", 38400);
 	PurgeComm( serial, PURGE_RXABORT | PURGE_RXCLEAR | PURGE_TXABORT | PURGE_TXCLEAR );
 	memset(packet, 0, 22);
 }
@@ -16,28 +16,37 @@ Touch::~Touch()
 
 void Touch::Tick()
 {
-	// Try to read the next byte
-	DWORD length = 0;
-	ReadFile( serial, packet + 21, 1, &length, 0 );
-	if (length == 1)
-	{
+	while( true ) {
+		// Try to read the next byte
+		DWORD length = 0;
+		ReadFile( serial, packet + 21, 1, &length, 0 );
+
+		if (length == 0)
+		{
+			// Nothing read, bail out early.
+			return;
+		}
+
 		// Shift it into the packet area
 		memmove(packet, packet + 1, 21);
-	}
 	
-	// See if the packet is good
-	if (ValidatePacket(packet)) {
-		bool vertical[VERTICAL_RESOLUTION] = { false };
-		bool horizontal[HORIZONTAL_RESOLUTION] = { false };
+		// See if the packet is good
+		if (ValidatePacket()) {
+			bool vertical[VERTICAL_RESOLUTION] = { false };
+			bool horizontal[HORIZONTAL_RESOLUTION] = { false };
 
-		// Get the touched axis
-		SeparateAxis(packet, horizontal, vertical);
+			// Get the touched axis
+			SeparateAxis(horizontal, vertical);
 
-		// Find the detected click point, set the state to that value
-		GetLikelyClickPosition(horizontal, vertical, &x, &y, &click);
+			// Find the detected click point, set the state to that value
+			GetLikelyClickPosition(horizontal, vertical, &x, &y, &click);
 
-		// Wipe out the packet to start again
-		memset(packet, 0, 22);
+			// Wipe out the packet to start again
+			memset(packet, 0, 22);
+
+			// Give calling application time to react
+			return;
+		}
 	}
 }
 
@@ -100,7 +109,7 @@ HANDLE Touch::OpenSerial( const _TCHAR *arg, int baud )
     return hSerial;
 }
 
-bool Touch::ValidatePacket(unsigned char * packet)
+bool Touch::ValidatePacket()
 {
 	if (packet[0] == 'U' && packet[1] == 'T' && packet[2] == 'L') {
 		// Check checksum
@@ -116,7 +125,7 @@ bool Touch::ValidatePacket(unsigned char * packet)
 	}
 }
 
-void Touch::SeparateAxis(unsigned char * packet, bool *horizontal, bool *vertical)
+void Touch::SeparateAxis(bool *horizontal, bool *vertical)
 {
     // Bytes 3 - 11 are bits for vertical set.
 	// Bytes 14 - 19 are bits for horizontal set.
