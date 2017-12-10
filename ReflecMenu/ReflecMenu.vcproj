@@ -182,6 +182,10 @@
 				RelativePath=".\ReflecMenu.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\Touch.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -194,6 +198,10 @@
 			</File>
 			<File
 				RelativePath=".\Menu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Touch.h"
 				>
 			</File>
 		</Filter>
