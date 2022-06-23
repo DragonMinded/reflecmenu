@@ -7,9 +7,9 @@
 
 #define CLASS_NAME L"Reflec Beat Touch Launcher"
 
-#define ITEM_HEIGHT 40
-#define ITEM_PADDING 20
-#define FONT_SIZE 20
+#define ITEM_HEIGHT 80
+#define ITEM_PADDING 40
+#define FONT_SIZE 60
 
 class Display
 {

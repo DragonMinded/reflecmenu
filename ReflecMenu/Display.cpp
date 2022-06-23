@@ -4,9 +4,13 @@
 #include "Display.h"
 #include "Menu.h"
 
+#include "resource.h"
+
 Menu *globalMenu;
 int globalResX, globalResY;
 bool globalQuit;
+
+HINSTANCE g_Inst;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -31,6 +35,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			HBRUSH background = CreateSolidBrush(RGB(0,0,0));
             FillRect(hdc, &ps.rcPaint, background);
 			DeleteObject(background);
+
+			/* 22.06.23 GVSolgryn Add : Test BMP Background */
+			HBITMAP Old, My;
+			HDC MemDC = CreateCompatibleDC(hdc);
+			My = LoadBitmap(g_Inst, MAKEINTRESOURCE(ID_BACKGROUND));
+			Old = (HBITMAP)SelectObject(MemDC, My);
+			BitBlt(hdc, 0, 0, 1920, 1080, MemDC, 0, 0, SRCCOPY);
+			DeleteObject(My);
+			DeleteDC(MemDC);
 
 			/* Set up text display */
 			SetTextColor(hdc, RGB(240, 240, 240));
@@ -89,6 +102,7 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 Display::Display(HINSTANCE hInstance, Menu *mInst)
 {
 	inst = hInstance;
+	g_Inst = hInstance;
 	globalMenu = mInst;
 
 	// Register the callback

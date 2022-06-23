@@ -4,7 +4,7 @@
 #include <sys/timeb.h>
 
 /* Seconds to wait for a selection before booting the default option */
-#define TIMEOUT_SECONDS       60
+#define TIMEOUT_SECONDS       5
 
 /* Constants for limitations on how long INI file pieces can be */
 #define MAX_GAME_NAME_LENGTH 63
